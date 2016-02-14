@@ -1,3 +1,5 @@
+/*
+
 The MIT License (MIT)
 
 Copyright (c) 2016 rklinkhammer
@@ -19,4 +21,24 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+*/
 
+#ifndef RRCS_APPLICATION_H_
+#define RRCS_APPLICATION_H_
+
+#include <Wt/WApplication>
+#include <Wt/WServer>
+#include <thread>
+
+namespace rrcs {
+
+class RRCSApplication {
+public:
+    static Wt::WApplication *createApplication(const Wt::WEnvironment& env);
+    static void UpdateThread(Wt::WApplication *app, std::function<bool()> abort);
+    static std::function<bool()> abort_;
+};
+
+} /* namespace rrcs */
+
+#endif /* RRCS_APPLICATION_H_ */

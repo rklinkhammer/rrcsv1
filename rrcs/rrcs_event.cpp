@@ -1,3 +1,5 @@
+/*
+
 The MIT License (MIT)
 
 Copyright (c) 2016 rklinkhammer
@@ -19,4 +21,19 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+*/
 
+#include "rrcs/rrcs_event.h"
+
+namespace rrcs {
+
+RRCSEvent::RRCSEvent() {
+	// TODO Auto-generated constructor stub
+
+}
+
+RRCSEvent::~RRCSEvent() {
+	// TODO Auto-generated destructor stub
+}
+
+} /* namespace rrcs */

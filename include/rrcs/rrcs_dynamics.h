@@ -1,3 +1,5 @@
+/*
+
 The MIT License (MIT)
 
 Copyright (c) 2016 rklinkhammer
@@ -19,4 +21,52 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+*/
 
+#ifndef RRCS_DYNAMICS_H_
+#define RRCS_DYNAMICS_H_
+
+#include <thread>
+#include <mraa/pwm.hpp>
+#include "util/threaded_queue.h"
+#include "rrcs/rrcs_event.h"
+
+namespace rrcs {
+
+class RRCSDynamics {
+public:
+
+	static const int MRAA_PWM2_PIN = 0;
+	static const int MRAA_PWM1_PIN = 14;
+
+	RRCSDynamics(std::function<bool()> abort);
+	virtual ~RRCSDynamics();
+
+	void Init();
+	void Run();
+
+	void Join() {
+        if (thread_.joinable()) {
+            thread_.join();
+        }
+    }
+
+protected:
+    std::function<bool()> abort_;
+
+private:
+	void DynamicsStateCallback();
+	void DynamicsConfigCallback();
+
+	mraa::Pwm	*pwm_main_; // GP182 (MRAA pin 0)
+	mraa::Pwm	*pwm_drogue_;  // GP13 (MRRA pin 14)
+
+    ThreadedQueue<RRCSEvent> events_;
+
+    std::thread thread_;
+    bool toggle_ {false};
+};
+
+} /* namespace rrcs */
+
+#endif /* RRCS_DYNAMICS_H_ */

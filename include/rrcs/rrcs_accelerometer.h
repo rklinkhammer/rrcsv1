@@ -1,3 +1,5 @@
+/*
+
 The MIT License (MIT)
 
 Copyright (c) 2016 rklinkhammer
@@ -19,4 +21,35 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+*/
 
+#ifndef RRCS_ACCELEROMETER_H_
+#define RRCS_ACCELEROMETER_H_
+
+#include <mraa/gpio.hpp>
+#include "mraa/ads1015.h"
+#include "mraa/adxl377.h"
+#include "rrcs/rrcs_sensor.h"
+
+namespace rrcs {
+
+class RRCSAccelerometer: public RRCSSensor {
+public:
+    RRCSAccelerometer(
+            std::function<bool(RRCSSensorMeasurement& measurement)> update,
+            std::function<bool()> abort);
+    virtual ~RRCSAccelerometer();
+
+    virtual void Init();
+    virtual void ReadSensor(RRCSSensorMeasurement& measurement,
+            std::chrono::high_resolution_clock::time_point time);
+
+private:
+    upm::ADS1015 *adc_ {nullptr};
+    upm::ADXL377 *acc_ {nullptr};
+    mraa::Gpio *gpio115_st_ {nullptr};
+};
+
+} /* namespace rrcs */
+
+#endif /* RRCS_ACCELEROMETER_H_ */

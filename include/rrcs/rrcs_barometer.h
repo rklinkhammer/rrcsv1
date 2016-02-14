@@ -1,3 +1,5 @@
+/*
+
 The MIT License (MIT)
 
 Copyright (c) 2016 rklinkhammer
@@ -19,4 +21,32 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+*/
 
+#ifndef RRCS_BAROMETER_H_
+#define RRCS_BAROMETER_H_
+
+#include "mraa/bmpx8x.h"
+#include "rrcs/rrcs_sensor.h"
+
+namespace rrcs {
+
+class RRCSBarometer: public RRCSSensor {
+public:
+    RRCSBarometer(
+            std::function<bool(RRCSSensorMeasurement& measurement)> update,
+            std::function<bool()> abort);
+    virtual ~RRCSBarometer();
+
+    virtual void Init();
+    virtual void ReadSensor(RRCSSensorMeasurement& measurement,
+            std::chrono::high_resolution_clock::time_point time);
+
+private:
+    upm::BMPX8X *baro_;
+    float pressure_;
+};
+
+} /* namespace rrcs */
+
+#endif /* RRCS_BAROMETER_H_ */

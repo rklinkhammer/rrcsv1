@@ -1,3 +1,5 @@
+/*
+
 The MIT License (MIT)
 
 Copyright (c) 2016 rklinkhammer
@@ -19,4 +21,24 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+*/
 
+#ifndef RRCS_H_
+#define RRCS_H_
+
+namespace rrcs {
+
+static constexpr const char *RRCS_MODE_MAIN_STR = "Main";
+static constexpr const char *RRCS_MODE_DUAL_STR = "Dual";
+static constexpr const char *RRCS_MODE_STAGING_STR = "Staging";
+
+static constexpr const char *RRCS_APOGEE_MAIN_STR = " main @ apogee ";
+static constexpr const char *RRCS_APOGEE_DROGUE_STR = " drogue @ apogee ";
+
+static constexpr const char *RRCS_MAIN_DEPLOY_400_STR = "+ main @ 400 m";
+static constexpr const char *RRCS_MAIN_DEPLOY_800_STR = "+ main @ 800 m";
+
+} /* namespace rrcs */
+
+
+#endif /* RRCS_H_ */
