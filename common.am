@@ -1,0 +1,2 @@
+AM_CXXFLAGS = --std=c++1y -I$(top_srcdir)/include -I/usr/include/eigen3
+
