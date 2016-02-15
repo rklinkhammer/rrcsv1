@@ -24,6 +24,7 @@ SOFTWARE.
 */
 
 #include <iostream>
+#include <algorithm>
 #include <Wt/WApplication>
 #include "rrcs/rrcs_state.h"
 #include "rrcs/rrcs_kalman_filter.h"
@@ -32,7 +33,7 @@ namespace rrcs {
 
 RRCSKalmanFilter::RRCSKalmanFilter(std::function<bool()> abort) :
         abort_(abort) {
-    for(int i = 0; i < ACC_SAMPLES_PER_SECOND; i++) {
+    for(int i = 0; i < RRCS_ACCELERATION_SAMPLES; i++) {
         acc_A_[i] = 0.0;
         acc_B_[i] = 0.0;
     }
@@ -60,46 +61,55 @@ void RRCSKalmanFilter::Run() {
 }
 
 void RRCSKalmanFilter::JitterStatistics(const RRCSSensorMeasurement& d) {
+    auto current = std::chrono::high_resolution_clock::now();
     if (d.IsAccX()) {
         if (acc_observations_) {
-            std::chrono::duration<double> delta = d.GetTimestamp() - last_acc_;
-            RRCSState::GetInstance().UpdateXJitter(delta.count());
+            RRCSState::GetInstance().UpdateXJitter((current - last_acc_).count());
+            RRCSState::GetInstance().UpdateXLatency((d.GetTimestamp() - last_acc_).count());
         }
-        last_acc_ = d.GetTimestamp();
+        last_acc_ = current;
         acc_observations_++;
     }
     if (d.IsPressure()) {
         if (baro_observations_) {
-            std::chrono::duration<double> delta = d.GetTimestamp() - last_baro_;
-            RRCSState::GetInstance().UpdatePJitter(delta.count());
+            RRCSState::GetInstance().UpdatePJitter((current - last_baro_).count());
+            RRCSState::GetInstance().UpdatePLatency((d.GetTimestamp() - last_baro_).count());
         }
-        last_baro_ = d.GetTimestamp();
+        last_baro_ = current;
         baro_observations_++;
     }
 }
 
 bool RRCSKalmanFilter::AccelerationDoubleBuffer(const RRCSSensorMeasurement& d, double A[], double B[]) {
     A[acc_count_] = d.GetAccX();
-    if (acc_count_ >= ACC_SAMPLES_PER_SECOND / 2) {
-        B[acc_count_ - ACC_SAMPLES_PER_SECOND / 2] = d.GetAccX();
+    if (acc_count_ >= RRCS_ACCELERATION_SAMPLES / 2) {
+        B[acc_count_ - RRCS_ACCELERATION_SAMPLES / 2] = d.GetAccX();
     }
     acc_count_++;
-    if (acc_count_ == ACC_SAMPLES_PER_SECOND) {
+    if (acc_count_ == RRCS_ACCELERATION_SAMPLES) {
         is_acc_A_ = !is_acc_A_;
-        acc_count_ = ACC_SAMPLES_PER_SECOND / 2;
+        acc_count_ = RRCS_ACCELERATION_SAMPLES / 2;
         return true;
     }
     return false;
 }
 
 void RRCSKalmanFilter::AccelerationFFT(double A[]) {
-    for (int i = 0; i < ACC_SAMPLES_PER_SECOND; i++) {
+    for (int i = 0; i < RRCS_ACCELERATION_SAMPLES; i++) {
         a_[i] = A[i];
     }
-    for (int i = ACC_SAMPLES_PER_SECOND; i < ACC_FFT_SIZE; i++) {
+    for (int i = RRCS_ACCELERATION_SAMPLES; i < ACC_FFT_SIZE; i++) {
         a_[i] = 0.0;
     }
     rdft(ACC_FFT_SIZE, 1, a_, ip_, w_);
+    std::vector<int> result;
+    for (int i = 0; i < RRCS_ACCELERATION_SAMPLES/2; i++) {
+    	if(a_[i] > 75.0) {
+    		result.push_back(i);
+    	}
+    }
+    std::sort (result.begin(), result.end());
+    RRCSState::GetInstance().SetVibrationVector(result);
 }
 
 void RRCSKalmanFilter::AccelerationVibrationAnalysis(const RRCSSensorMeasurement& d) {
@@ -165,6 +175,7 @@ void RRCSKalmanFilter::PrecalibrationState(const RRCSSensorMeasurement& d) {
         std::vector<double>  y = RRCSState::GetInstance().GetYCal();
         std::vector<double>  z = RRCSState::GetInstance().GetZCal();
         std::vector<double>  p = RRCSState::GetInstance().GetPCal();
+        Basep_ = p[0];
         Xf_(9) = p[0];
         U_(0) = x[1];
         U_(3) = y[1];
@@ -190,7 +201,7 @@ void RRCSKalmanFilter::CorrectionStep(const RRCSSensorMeasurement& d) {
     // X*n,n= X*n,n-1 + H(Y-MX*n,n-1)
     Y_ = MeasurementVector::Zero();
     if (d.IsPressure()) {
-        Y_(3) = d.GetPressure();
+        Y_(3) = d.GetPressure() - Basep_;
         Xf_ = Xp_ + Hp_ * (Y_ - M_ * Xp_);
     }
     if (RRCSState::GetInstance().GetState() > RRCSState::RRCS_STATE_READY) {
@@ -208,15 +219,20 @@ void RRCSKalmanFilter::CorrectionStep(const RRCSSensorMeasurement& d) {
             Xf_ = Xp_ + Hyz_ * (Y_ - M_ * Xp_);
         }
     } else {
+        if (d.IsAccX() && d.IsAccYZ()) {
+        	 Xf_(2) = d.GetAccX();
+        	 Xf_(5) = d.GetAccY();
+        	 Xf_(8) = d.GetAccZ();
+        }
+        if (d.IsPressure()) {
+        	Xf_(9) = d.GetPressure();
+        }
         Xf_(0) = 0.0;
         Xf_(1) = 0.0;
-        Xf_(2) = 0.0;
         Xf_(3) = 0.0;
         Xf_(4) = 0.0;
-        Xf_(5) = 0.0;
         Xf_(6) = 0.0;
         Xf_(7) = 0.0;
-        Xf_(8) = 0.0;
     }
     if ((RRCSState::GetInstance().GetState() == RRCSState::RRCS_STATE_READY) && d.IsAccX()
             && (fabs(d.GetAccX()) > ACCX_LAUNCH_VALUE)) {
@@ -273,7 +289,7 @@ void RRCSKalmanFilter::ProcessData(const RRCSSensorMeasurement& d) {
     if((++Nobs_ % 250) == 0) {
         std::vector<double> x;
         for(int i = 0; i < NSTATES; i++) {
-            x.push_back(Xf_(i));
+            x.push_back(static_cast<double>(Xf_(i)));
         }
         RRCSState::GetInstance().SetStateVector(x);
     }

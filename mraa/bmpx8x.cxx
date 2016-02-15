@@ -29,7 +29,7 @@
 #include <stdlib.h>
 #include <chrono>
 #include <thread>
-#include "bmpx8x.h"
+#include "mraa/bmpx8x.h"
 
 using namespace upm;
 

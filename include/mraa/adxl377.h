@@ -29,7 +29,7 @@
 #include <string>
 #include <mraa/aio.h>
 
-#include "../src/ads1015.h"
+#include "mraa/ads1015.h"
 
 #define ADXL377_DEFAULT_AREF 3.3
 #define ADXL377_VOLTS_PER_G	ADXL377_DEFAULT_AREF/400

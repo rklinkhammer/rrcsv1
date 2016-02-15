@@ -29,6 +29,7 @@ SOFTWARE.
 #include <Eigen/Dense>
 #include <Eigen/StdVector>
 #include "util/threaded_queue.h"
+#include "rrcs/rrcs.h"
 #include "rrcs/rrcs_sensor_measurement.h"
 
 extern "C" {
@@ -91,11 +92,12 @@ private:
     std::chrono::high_resolution_clock::time_point last_baro_;
     uint32_t baro_observations_ { 0 };
 
-    static const int ACC_SAMPLES_PER_SECOND = 50;
-    static const int ACC_FFT_SIZE = 64;
+    static const int ACC_FFT_SIZE = 64; // next highest power of two.
 
-    double acc_A_[ACC_SAMPLES_PER_SECOND];
-    double acc_B_[ACC_SAMPLES_PER_SECOND];
+    // Acceleration Vibration Analysis
+
+    double acc_A_[RRCS_ACCELERATION_SAMPLES];
+    double acc_B_[RRCS_ACCELERATION_SAMPLES];
     bool is_acc_A_ { true };
     int acc_count_ { 0 };
     int ip_[ACC_FFT_SIZE * 2];
@@ -103,7 +105,7 @@ private:
     double a_[ACC_FFT_SIZE * 2];
 
     // Kalman State Vector
-
+    float Basep_ {0.0} ; // Base Pressure Offset
     StateVector Xe_;    // X*n+1,n
     StateVector Xf_;    // X*n,n
     StateVector Xp_;    // X*n,n-1
@@ -117,7 +119,7 @@ private:
     MeasurementCovarianceMatrix R_;
     MeasurementVector Yavg_;
     MeasurementObservations Yobs_;
-    int Ysamples_;
+    int Ysamples_{0};
 
     // Kalman Measurement Mapping Matrix
     MeasurementMatrix M_;   // all

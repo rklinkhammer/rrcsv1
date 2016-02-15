@@ -31,7 +31,7 @@ namespace rrcs {
 RRCSBarometer::RRCSBarometer(
         std::function<bool(RRCSSensorMeasurement& measurement)> update,
         std::function<bool()> abort) :
-        RRCSSensor("BMP180", update, abort) {
+        RRCSSensor("BMP180", update, abort), baro_(nullptr), pressure_(101325) {
 }
 
 RRCSBarometer::~RRCSBarometer() {
@@ -40,6 +40,7 @@ RRCSBarometer::~RRCSBarometer() {
 void RRCSBarometer::Init() {
     baro_ = new upm::BMPX8X(6, 0x77, BMP085_HIGHRES);
     pressure_ = 101325;
+    SetRate(std::chrono::milliseconds(RRCS_BAROMETER_PERIOD_MS));
 }
 
 void RRCSBarometer::ReadSensor(RRCSSensorMeasurement& measurement,

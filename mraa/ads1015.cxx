@@ -21,7 +21,8 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#include "../src/ads1015.h"
+
+#include "mraa/ads1015.h"
 
 using namespace upm;
 

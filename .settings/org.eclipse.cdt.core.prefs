@@ -1,0 +1,6 @@
+eclipse.preferences.version=1
+environment/project/com.intel.iotdevkit.ide.toolchain.1427026848/POKY_HOME/delimiter=\:
+environment/project/com.intel.iotdevkit.ide.toolchain.1427026848/POKY_HOME/operation=replace
+environment/project/com.intel.iotdevkit.ide.toolchain.1427026848/POKY_HOME/value=/opt/poky-edison/1.7.2/sysroots/core2-32-poky-linux
+environment/project/com.intel.iotdevkit.ide.toolchain.1427026848/append=true
+environment/project/com.intel.iotdevkit.ide.toolchain.1427026848/appendContributed=true

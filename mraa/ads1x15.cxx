@@ -23,7 +23,7 @@
  */
 
 #include <thread>
-#include "ads1x15.h"
+#include "mraa/ads1x15.h"
 
 #include <unistd.h>
 

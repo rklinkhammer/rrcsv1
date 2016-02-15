@@ -25,7 +25,7 @@
 
 #pragma once
 
-#include "../src/ads1x15.h"
+#include "mraa/ads1x15.h"
 
 
 

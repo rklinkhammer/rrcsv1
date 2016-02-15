@@ -30,6 +30,7 @@ SOFTWARE.
 #include <mraa/pwm.hpp>
 #include "util/threaded_queue.h"
 #include "rrcs/rrcs_event.h"
+#include "rrcs/rrcs_state.h"
 
 namespace rrcs {
 
@@ -57,11 +58,14 @@ protected:
 private:
 	void DynamicsStateCallback();
 	void DynamicsConfigCallback();
+	void HandleRRCSStateChange();
+	void HandleRRCSStateReset();
 
 	mraa::Pwm	*pwm_main_; // GP182 (MRAA pin 0)
 	mraa::Pwm	*pwm_drogue_;  // GP13 (MRRA pin 14)
 
     ThreadedQueue<RRCSEvent> events_;
+    RRCSState::RRCS_STATE state_ {RRCSState::RRCS_STATE_INIT};
 
     std::thread thread_;
     bool toggle_ {false};

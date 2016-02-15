@@ -58,5 +58,15 @@ bool rrcs::RRCSState::IsCalibrated() {
     }
 }
 
+void RRCSState::Reset() {
+    state_ = RRCS_STATE_INIT;
+    for (int i = 0; i < 10; i++) {
+        state_vector_[i] = 0.0;
+    }
+    for (int i = 0; i < 4; i++) {
+        measurement_vector_[i] = 0.0;
+    }
+}
+
 } /* namespace rrcs */
 

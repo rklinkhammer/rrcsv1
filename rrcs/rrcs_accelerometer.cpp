@@ -62,7 +62,7 @@ void RRCSAccelerometer::Init() {
     acc_ = new upm::ADXL377(adc_);
     acc_->calibrate();
 
-    SetRate(std::chrono::milliseconds(20));
+    SetRate(std::chrono::milliseconds(RRCS_ACCELERATION_PERIOD_MS));
 }
 
 void RRCSAccelerometer::ReadSensor(RRCSSensorMeasurement& measurement,

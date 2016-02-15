@@ -1,27 +1,27 @@
 /*
 
-The MIT License (MIT)
+ The MIT License (MIT)
 
-Copyright (c) 2016 rklinkhammer
+ Copyright (c) 2016 rklinkhammer
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+ The above copyright notice and this permission notice shall be included in all
+ copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-*/
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ SOFTWARE.
+ */
 
 #include <string>
 #include <boost/property_tree/ptree.hpp>
@@ -121,26 +121,51 @@ void RRCSDashboard::SetupStatisticsPanel() {
 	stats_panel_->setLayout(grid);
 
 	static const char *labels[] = { "<b>Sensor</b>", "<b>J</b><sub>avg</sub>",
-			"<b>J</b><sub>std</sub>", "<b>N</b>" };
+			"<b>J</b><sub>std</sub>", "<b>L</b><sub>avg</sub>",
+			"<b>L</b><sub>std</sub>", "<b>N</b>" };
 
-	for (int i = 0; i < 4; i++) {
+	for (int i = 0; i < 6; i++) {
 		grid->addWidget(new Wt::WText(labels[i]), 0, i, Wt::AlignCenter);
 	}
 	grid->addWidget(new Wt::WText("Acc"), 1, 0, Wt::AlignCenter);
 	grid->addWidget(new Wt::WText("Baro"), 2, 0, Wt::AlignCenter);
 
-	for (int i = 1; i < 4; i++) {
+	for (int i = 1; i < 6; i++) {
 		Wt::WText *value = new Wt::WText("0.0");
 		grid->addWidget(value, 1, i, Wt::AlignCenter);
 		stats_vector_tx_.push_back(value);
 	}
-	for (int i = 1; i < 4; i++) {
+	for (int i = 1; i < 6; i++) {
 		Wt::WText *value = new Wt::WText("-0.0");
 		grid->addWidget(value, 2, i, Wt::AlignCenter);
 		stats_vector_tx_.push_back(value);
 	}
 	RRCSState::GetInstance().AddCallback([this]() {
 		SetSensorStatsCb();
+	});
+
+}
+
+void RRCSDashboard::SetupAccelerationVibrationPanel() {
+	vibration_panel_ = new Wt::WGroupBox(this);
+	vibration_panel_->setTitle("Vibration");
+	Wt::WGridLayout *grid = new Wt::WGridLayout();
+	vibration_panel_->setLayout(grid);
+
+	static const char *labels[] = { "<b>f</b><sub>0</sub> ",
+			"<b>f</b><sub>1</sub> ", "<b>f</b><sub>2</sub> ",
+			"<b>f</b><sub>3</sub>", "<b>f</b><sub>4</sub>" };
+
+	for (int i = 0; i < 5; i++) {
+		grid->addWidget(new Wt::WText(labels[i]), 0, i, Wt::AlignCenter);
+	}
+	for (int i = 0; i < 5; i++) {
+		Wt::WText *value = new Wt::WText("--");
+		grid->addWidget(value, 1, i, Wt::AlignCenter);
+		vibration_vector_tx_.push_back(value);
+	}
+	RRCSState::GetInstance().AddCallback([this]() {
+		SetVibrationCb();
 	});
 
 }
@@ -159,6 +184,7 @@ RRCSDashboard::RRCSDashboard(Wt::WContainerWidget *parent) :
 	SetupOperationalParametersPanel();
 	SetupRRCSStatusPanel();
 	SetupKalmanFilterPanel();
+	SetupAccelerationVibrationPanel();
 	SetupStatisticsPanel();
 
 	SetDeployAltitudeCbIndex();
@@ -166,7 +192,6 @@ RRCSDashboard::RRCSDashboard(Wt::WContainerWidget *parent) :
 	SetRRCSStateCb();
 
 	ModeChange(GetModeStr());
-
 
 }
 RRCSDashboard::~RRCSDashboard() {
@@ -229,13 +254,26 @@ void RRCSDashboard::SetRRCSStateCb() {
 void RRCSDashboard::SetSensorStatsCb() {
 	std::vector<double> acc = RRCSState::GetInstance().GetXJitter();
 	std::vector<double> baro = RRCSState::GetInstance().GetPJitter();
+	std::vector<double> lacc = RRCSState::GetInstance().GetXLatency();
+	std::vector<double> lbaro = RRCSState::GetInstance().GetPLatency();
 
-	int i = 0;
+	std::vector<double> data { acc[0], acc[1], lacc[0], lacc[1], acc[2],
+			baro[0], baro[1], lbaro[0], lbaro[1], baro[2] };
+	std::size_t i = 0;
 	for (auto t : stats_vector_tx_) {
-		if (i < 3) {
-			t->setText(std::to_string(acc[i]));
+		t->setText(std::to_string(data[i]));
+		i++;
+	}
+}
+
+void RRCSDashboard::SetVibrationCb() {
+	std::vector<int> vib = RRCSState::GetInstance().GetVibrationVector();
+	std::size_t i = 0;
+	for (auto t : vibration_vector_tx_) {
+		if (i < vib.size()) {
+			t->setText(std::to_string(vib[i]));
 		} else {
-			t->setText(std::to_string(baro[i - 3]));
+			t->setText("--");
 		}
 		i++;
 	}

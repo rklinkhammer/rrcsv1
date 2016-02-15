@@ -32,11 +32,11 @@ SOFTWARE.
 namespace rrcs {
 
 class RRCSEvent {
+public:
 	enum RRCSEventType {
 		RRCS_STATE_CHANGE
 	};
 
-public:
 	RRCSEvent();
 	virtual ~RRCSEvent();
 

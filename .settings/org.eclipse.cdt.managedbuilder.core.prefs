@@ -1,0 +1,13 @@
+eclipse.preferences.version=1
+environment/buildEnvironmentInclude/com.intel.iotdevkit.ide.toolchain.1427026848/CPATH/delimiter=\:
+environment/buildEnvironmentInclude/com.intel.iotdevkit.ide.toolchain.1427026848/CPATH/operation=remove
+environment/buildEnvironmentInclude/com.intel.iotdevkit.ide.toolchain.1427026848/CPLUS_INCLUDE_PATH/delimiter=\:
+environment/buildEnvironmentInclude/com.intel.iotdevkit.ide.toolchain.1427026848/CPLUS_INCLUDE_PATH/operation=remove
+environment/buildEnvironmentInclude/com.intel.iotdevkit.ide.toolchain.1427026848/C_INCLUDE_PATH/delimiter=\:
+environment/buildEnvironmentInclude/com.intel.iotdevkit.ide.toolchain.1427026848/C_INCLUDE_PATH/operation=remove
+environment/buildEnvironmentInclude/com.intel.iotdevkit.ide.toolchain.1427026848/append=true
+environment/buildEnvironmentInclude/com.intel.iotdevkit.ide.toolchain.1427026848/appendContributed=true
+environment/buildEnvironmentLibrary/com.intel.iotdevkit.ide.toolchain.1427026848/LIBRARY_PATH/delimiter=\:
+environment/buildEnvironmentLibrary/com.intel.iotdevkit.ide.toolchain.1427026848/LIBRARY_PATH/operation=remove
+environment/buildEnvironmentLibrary/com.intel.iotdevkit.ide.toolchain.1427026848/append=true
+environment/buildEnvironmentLibrary/com.intel.iotdevkit.ide.toolchain.1427026848/appendContributed=true

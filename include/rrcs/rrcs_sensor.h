@@ -29,6 +29,7 @@ SOFTWARE.
 #include <chrono>
 #include <thread>
 #include <mutex>
+#include "rrcs/rrcs.h"
 #include "rrcs/rrcs_sensor_measurement.h"
 
 namespace rrcs {
@@ -74,7 +75,7 @@ private:
 
     std::string name_;
     std::chrono::high_resolution_clock::time_point time_;
-    std::chrono::milliseconds rate_ { 40 };
+    std::chrono::milliseconds rate_ { RRCS_DEFAULT_PERIOD_MS };
     std::thread thread_;
 }
 ;

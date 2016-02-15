@@ -1,27 +1,27 @@
 /*
 
-The MIT License (MIT)
+ The MIT License (MIT)
 
-Copyright (c) 2016 rklinkhammer
+ Copyright (c) 2016 rklinkhammer
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+ The above copyright notice and this permission notice shall be included in all
+ copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-*/
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ SOFTWARE.
+ */
 
 #include <iostream>
 #include "rrcs/rrcs_dynamics.h"
@@ -40,10 +40,10 @@ RRCSDynamics::~RRCSDynamics() {
 
 void RRCSDynamics::Init() {
 	mraa::Result ret;
-	RRCSState::GetInstance().AddCallback([this]() {
-		DynamicsStateCallback();
-	});
-//
+//	RRCSState::GetInstance().AddCallback([this]() {
+//		DynamicsStateCallback();
+//	});
+////
 //	RRCSConfig::GetInstance().AddCallback([this]() {
 //		DynamicsConfigCallback();
 //	});
@@ -102,14 +102,33 @@ void RRCSDynamics::DynamicsStateCallback() {
 //	}
 }
 
+void RRCSDynamics::HandleRRCSStateChange() {
+	std::cout << "State Change" << std::endl;
+}
+
+void RRCSDynamics::HandleRRCSStateReset() {
+	state_ = RRCSState::RRCS_STATE_INIT;
+	std::cout << "Reset" << std::endl;
+}
+
 void RRCSDynamics::Run() {
 	auto thread_lambda = [this]() -> void {
 		bool queue_status = true;
 		RRCSEvent event;
 		while(!abort_() && queue_status) {
 			queue_status = events_.Dequeue(event);
+			if(event.GetCommand() == RRCSEvent::RRCS_STATE_CHANGE) {
+				// If the new state is the next state, then we have
+				// not been reset.  Otherwise, we have been reset and
+				// set start over.
+			if(event.GetState() > state_) {
+				HandleRRCSStateChange();
+			} else if (event.GetState() == RRCSState::RRCS_STATE_INIT) {
+				HandleRRCSStateReset();
+			}
 		}
-	};
+	}
+}	;
 
 	thread_ = std::thread(thread_lambda);
 }
