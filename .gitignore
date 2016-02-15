@@ -7,3 +7,17 @@ Makefile.in
 mraa/Makefile.in
 rrcs/Makefile.in
 config/*
+mraa/*.o
+mraa/*.a
+rrcs/*.o
+rrcs/rrcsv1
+config.h
+config.log
+config.status
+mraa/.deps
+rrcs/.deps
+Makefile
+mraa/Makefile
+rrcs/Makefile
+stamp-h1
+Default
