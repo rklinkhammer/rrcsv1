@@ -25,10 +25,10 @@ SOFTWARE.
 
 #include <iostream>
 #include "rrcs/rrcs_application.h"
+#include "rrcs/rrcs_config.h"
 #include "rrcs/rrcs_accelerometer.h"
 #include "rrcs/rrcs_barometer.h"
 #include "rrcs/rrcs_kalman_filter.h"
-#include "rrcs/rrcs_dynamics.h"
 
 int main(int argc, char **argv) {
     bool abort = false;
@@ -38,17 +38,14 @@ int main(int argc, char **argv) {
         rrcs::RRCSBarometer baro(kf.GetUpdateFunction(), f);
         rrcs::RRCSAccelerometer acc(kf.GetUpdateFunction(), f);
         rrcs::RRCSApplication::abort_ = f;
-        rrcs::RRCSDynamics	dynamics(f);
 
         kf.Init();
         baro.Init();
         acc.Init();
-        dynamics.Init();
 
         kf.Run();
         baro.Run();
         acc.Run();
-        dynamics.Run();
 
         Wt::WServer server(argv[0]);
         server.setServerConfiguration(argc, argv, WTHTTP_CONFIGURATION);
@@ -63,7 +60,6 @@ int main(int argc, char **argv) {
         kf.Join();
         baro.Join();
         acc.Join();
-        dynamics.Join();
 
     } catch (Wt::WServer::Exception& e) {
         std::cerr << e.what() << std::endl;

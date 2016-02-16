@@ -69,12 +69,16 @@ void RRCSDashboard::SetupOperationalParametersPanel() {
 	mode_panel_->addWidget(apogee_string_tx_);
 	//parameters->positionAt(mode_tx, Wt::Vertical);
 	deploy_altitude_cb_ = new Wt::WComboBox(this);
-	deploy_altitude_cb_->addItem(RRCS_MAIN_DEPLOY_400_STR);
-	deploy_altitude_cb_->addItem(RRCS_MAIN_DEPLOY_800_STR);
+	deploy_altitude_cb_->addItem(RRCS_MAIN_DEPLOY_150_STR);
+	deploy_altitude_cb_->addItem(RRCS_MAIN_DEPLOY_300_STR);
 	deploy_altitude_cb_->changed().connect(std::bind([this]() {
 		DeployAltitudeChange(deploy_altitude_cb_->currentText());
 	}));
 	mode_panel_->addWidget(deploy_altitude_cb_);
+	Wt::WText* file = new Wt::WText(" <b> Log file: </b>");
+	mode_panel_->addWidget(file);
+	Wt::WText* log = new Wt::WText(RRCSConfig::GetInstance().GetNextFileName());
+	mode_panel_->addWidget(log);
 }
 
 void RRCSDashboard::SetupRRCSStatusPanel() {
@@ -229,9 +233,9 @@ void RRCSDashboard::SetModeCbIndex() {
 }
 
 void RRCSDashboard::SetDeployAltitudeCbIndex() {
-	if (GetDeployAltitudeStr() == RRCS_MAIN_DEPLOY_400_STR) {
+	if (GetDeployAltitudeStr() == RRCS_MAIN_DEPLOY_150_STR) {
 		deploy_altitude_cb_->setCurrentIndex(0);
-	} else if (GetDeployAltitudeStr() == RRCS_MAIN_DEPLOY_800_STR) {
+	} else if (GetDeployAltitudeStr() == RRCS_MAIN_DEPLOY_300_STR) {
 		deploy_altitude_cb_->setCurrentIndex(1);
 	}
 }

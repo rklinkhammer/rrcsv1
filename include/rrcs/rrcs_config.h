@@ -29,6 +29,7 @@ SOFTWARE.
 #include <string>
 #include <vector>
 #include <mutex>
+#include "rrcs/rrcs.h"
 
 namespace rrcs {
 
@@ -40,6 +41,18 @@ public:
     void AddCallback(std::function<void()> f) { callbacks_.push_back(f); }
     std::string GetNextFileName();
 
+	const std::string& GetFilename() const {
+		return filename_;
+	}
+
+	float GetDualAltitude() const {
+		return dual_altitude_;
+	}
+
+	RRCSMode GetRrcsMode() const {
+		return rrcs_mode_;
+	}
+
 private:
     RRCSConfig();
     virtual ~RRCSConfig();
@@ -49,8 +62,15 @@ private:
             f();
         }
     }
+
+	void UpdateOperationalMode(std::string mode, std::string altitude);
+
+    RRCSMode rrcs_mode_;
+	float dual_altitude_;
+
     std::vector<std::function<void()>> callbacks_;
     std::mutex  lock_;
+    std::string filename_;
 
     static RRCSConfig instance_;
 };

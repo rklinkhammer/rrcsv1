@@ -34,11 +34,27 @@ RRCSConfig RRCSConfig::instance_;
 
 RRCSConfig::RRCSConfig() {
     // TODO Auto-generated constructor stub
-
+	filename_ = GetNextFileName();
 }
 
 RRCSConfig::~RRCSConfig() {
     // TODO Auto-generated destructor stub
+}
+
+void RRCSConfig::UpdateOperationalMode(std::string mode, std::string altitude) {
+	if (mode == RRCS_MODE_MAIN_STR) {
+		rrcs_mode_ = RRCS_MODE_MAIN;
+	} else if (mode == RRCS_MODE_DUAL_STR) {
+		rrcs_mode_ = RRCS_MODE_DUAL;
+	} else if (mode == RRCS_MODE_STAGING_STR) {
+		rrcs_mode_ = RRCS_MODE_STAGING;
+	}
+
+	if (altitude == RRCS_MAIN_DEPLOY_300_STR) {
+		dual_altitude_ = 300.0;
+	} else if (altitude == RRCS_MAIN_DEPLOY_150_STR) {
+		dual_altitude_ = 150.0;
+	}
 }
 
 void RRCSConfig::ReadConfig(std::string& mode, std::string& altitude) {
@@ -46,7 +62,8 @@ void RRCSConfig::ReadConfig(std::string& mode, std::string& altitude) {
     boost::property_tree::ptree pt;
     boost::property_tree::ini_parser::read_ini("config.ini", pt);
     mode = pt.get("operational.mode", RRCS_MODE_MAIN_STR);
-    altitude = pt.get("operational.parameters", RRCS_MAIN_DEPLOY_800_STR);
+    altitude = pt.get("operational.parameters", RRCS_MAIN_DEPLOY_300_STR);
+	UpdateOperationalMode(mode, altitude);
 }
 
 void RRCSConfig::WriteConfig(const std::string mode,
@@ -57,6 +74,7 @@ void RRCSConfig::WriteConfig(const std::string mode,
     pt.put("operational.mode", mode);
     pt.put("operational.parameters", altitude);
     boost::property_tree::ini_parser::write_ini("config.ini", pt);
+    UpdateOperationalMode(mode, altitude);
 }
 
 std::string RRCSConfig::GetNextFileName() {
@@ -65,10 +83,11 @@ std::string RRCSConfig::GetNextFileName() {
     boost::property_tree::ini_parser::read_ini("config.ini", pt);
     int index = pt.get("logging.index", 0);
     pt.put("logging.index", index+1);
-    std::string prefix = pt.get("logging.prefix", "rrcs");
+    std::string prefix = pt.get("logging.prefix", "rrcs_");
     boost::property_tree::ini_parser::write_ini("config.ini", pt);
 
-    return prefix + std::to_string(index) + ".csv";
+    filename_ = prefix + std::to_string(index) + ".csv";
+    return filename_;
 }
 
 

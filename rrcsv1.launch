@@ -2,7 +2,7 @@
 <launchConfiguration type="org.eclipse.cdt.launch.remoteApplicationLaunchType">
 <stringAttribute key="com.intel.iotdevkit.launch.config.default" value="rrcsv1"/>
 <stringAttribute key="org.eclipse.cdt.dsf.gdb.DEBUG_NAME" value="i586-poky-linux-gdb"/>
-<stringAttribute key="org.eclipse.cdt.dsf.gdb.HOST" value="edison"/>
+<stringAttribute key="org.eclipse.cdt.dsf.gdb.HOST" value="192.168.1.11"/>
 <booleanAttribute key="org.eclipse.cdt.dsf.gdb.NON_STOP" value="false"/>
 <stringAttribute key="org.eclipse.cdt.dsf.gdb.PORT" value="2345"/>
 <booleanAttribute key="org.eclipse.cdt.dsf.gdb.REMOTE_TCP" value="true"/>
@@ -13,7 +13,7 @@
 <stringAttribute key="org.eclipse.cdt.launch.DEBUGGER_START_MODE" value="remote"/>
 <booleanAttribute key="org.eclipse.cdt.launch.DEBUGGER_STOP_AT_MAIN" value="true"/>
 <stringAttribute key="org.eclipse.cdt.launch.PROGRAM_ARGUMENTS" value="--docroot /home/root --approot /home/root   --http-port 8080 --http-addr 0.0.0.0 --accesslog /dev/null"/>
-<stringAttribute key="org.eclipse.cdt.launch.PROGRAM_NAME" value="Default/rrcsv1"/>
+<stringAttribute key="org.eclipse.cdt.launch.PROGRAM_NAME" value="/home/dev/workspace_iot/rrcsv1/rrcs/rrcsv1"/>
 <stringAttribute key="org.eclipse.cdt.launch.PROJECT_ATTR" value="rrcsv1"/>
 <booleanAttribute key="org.eclipse.cdt.launch.PROJECT_BUILD_CONFIG_AUTO_ATTR" value="false"/>
 <stringAttribute key="org.eclipse.cdt.launch.PROJECT_BUILD_CONFIG_ID_ATTR" value=""/>
