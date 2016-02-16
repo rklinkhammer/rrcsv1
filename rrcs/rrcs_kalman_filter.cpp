@@ -140,7 +140,8 @@ void RRCSKalmanFilter::InitKalmanFilter() {
 	A_ = TransitionMatrix::Identity(); // Transition Next State Matrix
 	SetNextStateDeltaT(0.04);
 
-	U_ = StateVector::Zero(); // Noise Vector
+	U_ = StateVector::Zero(); 
+	R_ = MeasurementCovarianceMatrix::Zero();
 
 	M_ = MeasurementMatrix::Zero();
 	M_(0, 2) = 1;
@@ -157,17 +158,14 @@ void RRCSKalmanFilter::InitKalmanFilter() {
 	Hp_ = GainMatrix::Zero();
 	Hp_(9, 3) = 0.020; // Baro
 
-	Hx_ = GainMatrix::Zero();
-	Hx_(2, 0) = 0.018; // AccX
-
-	Hyz_ = GainMatrix::Zero();
-	Hyz_(5, 1) = 0.018; // AccY
-	Hyz_(8, 2) = 0.018; // AccZ
-
 	Hxyz_ = GainMatrix::Zero();
 	Hxyz_(2, 0) = 0.018; // AccX
 	Hxyz_(5, 1) = 0.018; // AccY
 	Hxyz_(8, 2) = 0.018; // AccZ
+
+	Pe_ = GainMatrix::Zero();
+	Pf_ = GainMatrix::Zero();
+
 }
 
 void RRCSKalmanFilter::PrecalibrationState(const RRCSSensorMeasurement& d) {
@@ -187,7 +185,16 @@ void RRCSKalmanFilter::KalmanGainState(const RRCSSensorMeasurement& d) {
 void RRCSKalmanFilter::EstimationStep() {
 	/* State Estimation */
 	// X*n+1,n = AX*n,n + Un,n
-	Xp_ = A_ * Xf_; //+ U_;
+	Xe_ = A_ * Xf_ + U_;
+	// P*n+1,n =  H Pk,k H^t + Q_
+	Pe_ = H_ * Pf_ * H_.transpose() + Q_;
+	// H = (P*n+1,n M.transpose())(M * P*n+1,n * M.transpose() + R)^-1
+	GainMatrix tmp = M_ * Pe_ * M_.transpose() + R_;
+	H_ = (Pe_ * M_.transpose()) * tmp.inverse(); 
+	Hp_(9,3) = H_(9,3);
+	Hxyz_(2,0) = H_(2,0);
+	Hxyz_(5,1) = H_(5,1);
+	Hxyz_(8,2) = H_(8,2);
 }
 
 void RRCSKalmanFilter::CorrectionStep(const RRCSSensorMeasurement& d) {
@@ -195,21 +202,14 @@ void RRCSKalmanFilter::CorrectionStep(const RRCSSensorMeasurement& d) {
 	Y_ = MeasurementVector::Zero();
 	if (d.IsPressure()) {
 		Y_(3) = d.GetPressure() - Xp_min_;
-		Xf_ = Xp_ + Hp_ * (Y_ - M_ * Xp_);
+		Xf_ = Xe_ + Hp_ * (Y_ - M_ * Xe_);
 	}
 	if (RRCSState::GetInstance().GetState() > RRCSState::RRCS_STATE_READY) {
 		if (d.IsAccX() && d.IsAccYZ()) {
 			Y_(0) = d.GetAccX();
 			Y_(1) = d.GetAccY();
 			Y_(2) = d.GetAccZ();
-			Xf_ = Xp_ + Hxyz_ * (Y_ - M_ * Xp_);
-		} else if (d.IsAccX()) {
-			Y_(0) = d.GetAccX();
-			Xf_ = Xp_ + Hx_ * (Y_ - M_ * Xp_);
-		} else if (d.IsAccYZ()) {
-			Y_(1) = d.GetAccY();
-			Y_(2) = d.GetAccZ();
-			Xf_ = Xp_ + Hyz_ * (Y_ - M_ * Xp_);
+			Xf_ = Xe_ + Hxyz_ * (Y_ - M_ * Xe_);
 		}
 	} else {
 		if (d.IsAccX() && d.IsAccYZ()) {
@@ -247,10 +247,10 @@ void RRCSKalmanFilter::SetCalibrationValues() {
 	std::vector<double> p = RRCSState::GetInstance().GetPCal();
 	Xp_min_ = p[0];
 	Xf_(Xp) = p[0];
-	U_(Xa) = x[1];
-	U_(Ya) = y[1];
-	U_(Za) = z[1];
-	U_(Xp) = p[1];
+	Q_(Xa,Xa) = x[1];
+	Q_(Ya,Ya) = y[1];
+	Q_(Za, Za) = z[1];
+	Q_(Xp, Xp) = p[1];
 }
 
 void RRCSKalmanFilter::UpdateKalmanFilter(const RRCSSensorMeasurement& d) {

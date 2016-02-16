@@ -119,7 +119,8 @@ private:
 
 	// Acceleration Vibration Analysis
 	double acc_A_[RRCS_ACCELERATION_SAMPLES];
-	double acc_B_[RRCS_ACCELERATION_SAMPLES];bool is_acc_A_ { true };
+	double acc_B_[RRCS_ACCELERATION_SAMPLES];
+	bool is_acc_A_ { true };
 	int acc_count_ { 0 };
 	int ip_[ACC_FFT_SIZE * 2];
 	double w_[ACC_FFT_SIZE * 2]; //
@@ -131,13 +132,12 @@ private:
 	float Xp_max_observations_ {0};
 
 	// Kalman State Vector
-	StateVector Xe_;    // X*n+1,n
+	StateVector Xe_;    // X*n+1,n (estimate)
 	StateVector Xf_;    // X*n,n
-	StateVector Xp_;    // X*n,n-1
 
 	// Kalman Transition Matrix
 	TransitionMatrix A_;
-	// Kalman Transition Matrix
+	// Estimation variance
 	StateVector U_;
 	// Kalman Measurement Vector
 	MeasurementVector Y_;
@@ -150,12 +150,13 @@ private:
 	MeasurementMatrix M_;   // all
 	int Nobs_ { 0 };
 
-	// Kalman Gain
+	// Kalman Gain Matrix 
 	GainMatrix H_;
 	GainMatrix Hp_;
-	GainMatrix Hx_;
-	GainMatrix Hyz_;
 	GainMatrix Hxyz_;
+
+	GainMatrix Pe_; // Pk+1,k (estimate)
+	GainMatrix Pf_; // Pk,k 
 
 	// Delta T
 	std::chrono::high_resolution_clock::time_point last_;
