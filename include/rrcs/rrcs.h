@@ -35,14 +35,21 @@ static constexpr const char *RRCS_MODE_STAGING_STR = "Staging";
 static constexpr const char *RRCS_APOGEE_MAIN_STR = " main @ apogee ";
 static constexpr const char *RRCS_APOGEE_DROGUE_STR = " drogue @ apogee ";
 
-static constexpr const char *RRCS_MAIN_DEPLOY_400_STR = "+ main @ 400 m";
-static constexpr const char *RRCS_MAIN_DEPLOY_800_STR = "+ main @ 800 m";
+static constexpr const char *RRCS_MAIN_DEPLOY_150_STR = "+ main @ 150 m";
+static constexpr const char *RRCS_MAIN_DEPLOY_300_STR = "+ main @ 300 m";
 
 static constexpr const int RRCS_ACCELERATION_PERIOD_MS = 20;
 static constexpr const int RRCS_BAROMETER_PERIOD_MS = 40;
 static constexpr const int RRCS_DEFAULT_PERIOD_MS = RRCS_BAROMETER_PERIOD_MS;
 static constexpr const int RRCS_ACCELERATION_SAMPLES = 1000/RRCS_ACCELERATION_PERIOD_MS;
 static constexpr const int RRCS_BAROMETER_SAMPLES = 1000/RRCS_BAROMETER_PERIOD_MS;
+static constexpr const int RRCS_DESCENT_OBSERVATIONS = RRCS_BAROMETER_SAMPLES;
+
+enum RRCSMode {
+	RRCS_MODE_MAIN,
+	RRCS_MODE_DUAL,
+	RRCS_MODE_STAGING
+};
 
 } /* namespace rrcs */
 

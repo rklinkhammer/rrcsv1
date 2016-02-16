@@ -26,6 +26,7 @@ SOFTWARE.
 #ifndef RRCS_ACCELEROMETER_H_
 #define RRCS_ACCELEROMETER_H_
 
+#include <functional>
 #include <mraa/gpio.hpp>
 #include "mraa/ads1015.h"
 #include "mraa/adxl377.h"

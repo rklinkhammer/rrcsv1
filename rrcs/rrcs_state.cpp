@@ -30,7 +30,7 @@ namespace rrcs {
 RRCSState RRCSState::instance_;
 
 const char *RRCSState::RRCS_STATE_STR_[] = { "Init", "Calibrating", "Ready",
-        "Boost", "Coast", "Main", "Drogue" };
+        "Boost", "Coast", "Apogee", "Main", "Drogue", "Done" };
 
 RRCSState::RRCSState() {
     state_ = RRCS_STATE_INIT;

@@ -26,9 +26,10 @@ SOFTWARE.
 #ifndef RRCS_APPLICATION_H_
 #define RRCS_APPLICATION_H_
 
+#include <thread>
+#include <functional>
 #include <Wt/WApplication>
 #include <Wt/WServer>
-#include <thread>
 
 namespace rrcs {
 

@@ -26,78 +26,76 @@
 
 using namespace upm;
 
-void
-ADS1015::setSPS(ADSSAMPLERATE rate){
-    updateConfigRegister((m_config_reg & ~ADS1X15_DR_MASK) | rate);
+void ADS1015::setSPS(ADSSAMPLERATE rate) {
+	updateConfigRegister((m_config_reg & ~ADS1X15_DR_MASK) | rate);
 }
 
-ADS1015::ADS1015(int bus, uint8_t address) : ADS1X15(bus, address) {
-    m_name = "ADS1015";
-    m_conversionDelay = ADS1015_CONVERSIONDELAY;
-    m_bitShift = 4;
-    ADS1X15::getCurrentConfig();
+ADS1015::ADS1015(int bus, uint8_t address) :
+		ADS1X15(bus, address) {
+	m_name = "ADS1015";
+	m_conversionDelay = ADS1015_CONVERSIONDELAY;
+	m_bitShift = 4;
+	ADS1X15::getCurrentConfig();
 }
 
-ADS1015::~ADS1015(){};
+ADS1015::~ADS1015() {
+}
 
 //Private functions
-float
-ADS1015::getMultiplier(void){
-    float multi = 0.0;
-    switch((ADSGAIN)m_config_reg & ADS1X15_PGA_MASK){
-    case GAIN_TWOTHIRDS:
-        multi = 0.003;
-        break;
-    case GAIN_ONE:
-        multi = 0.002;
-        break;
-    case GAIN_TWO:
-        multi = 0.001;
-        break;
-    case GAIN_FOUR:
-        multi = 0.0005;
-        break;
-    case GAIN_EIGHT:
-        multi = 0.00025;
-        break;
-    case GAIN_SIXTEEN:
-        multi = 0.000125;
-        break;
-    default:
-        multi = 0.001;
-        break;
-    }
-    return multi;
+float ADS1015::getMultiplier(void) {
+	float multi = 0.0;
+	switch ((ADSGAIN) m_config_reg & ADS1X15_PGA_MASK) {
+	case GAIN_TWOTHIRDS:
+		multi = 0.003;
+		break;
+	case GAIN_ONE:
+		multi = 0.002;
+		break;
+	case GAIN_TWO:
+		multi = 0.001;
+		break;
+	case GAIN_FOUR:
+		multi = 0.0005;
+		break;
+	case GAIN_EIGHT:
+		multi = 0.00025;
+		break;
+	case GAIN_SIXTEEN:
+		multi = 0.000125;
+		break;
+	default:
+		multi = 0.001;
+		break;
+	}
+	return multi;
 }
 
-void
-ADS1015::setDelay(){
-    switch((int)ADS1X15::getSPS()){
-    case 0:
-        m_conversionDelay = 8000;
-        break;
-    case 32:
-        m_conversionDelay = 4000;
-        break;
-    case 64:
-        m_conversionDelay = 3000;
-        break;
-    case 96:
-        m_conversionDelay = 1100;
-        break;
-    case 128:
-        m_conversionDelay = 700;
-        break;
-    case 160:
-        m_conversionDelay = 500;
-        break;
-    case 192:
-        m_conversionDelay = 400;
-        break;
-    default:
-        m_conversionDelay = 8000;
-        break;
-    }
+void ADS1015::setDelay() {
+	switch ((int) ADS1X15::getSPS()) {
+	case 0:
+		m_conversionDelay = 8000;
+		break;
+	case 32:
+		m_conversionDelay = 4000;
+		break;
+	case 64:
+		m_conversionDelay = 3000;
+		break;
+	case 96:
+		m_conversionDelay = 1100;
+		break;
+	case 128:
+		m_conversionDelay = 700;
+		break;
+	case 160:
+		m_conversionDelay = 500;
+		break;
+	case 192:
+		m_conversionDelay = 400;
+		break;
+	default:
+		m_conversionDelay = 8000;
+		break;
+	}
 }
-
 
