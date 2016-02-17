@@ -43,129 +43,132 @@ namespace rrcs {
 class RRCSKalmanFilter {
 public:
 
-	static constexpr const int NSTATES = 10;
-	static constexpr const int NSENSORS = 4;
-	static constexpr const int CALIBRATION_SAMPLES = 250;
-	static constexpr const float ACCX_LAUNCH_VALUE = (9.81 * 0);	// 2g
-	static constexpr const float VELOCITY_APOGEE_VALUE = 2.0;		// 2 m/s
-	static constexpr const int ACC_FFT_SIZE = 64; // next highest power of two.
+    static constexpr const int NSTATES = 10;
+    static constexpr const int NSENSORS = 4;
+    static constexpr const int CALIBRATION_SAMPLES = 250;
+    static constexpr const float ACCX_LAUNCH_VALUE = (9.81 * 0);	// 2g
+    static constexpr const float VELOCITY_APOGEE_VALUE = 2.0;		// 2 m/s
+    static constexpr const int ACC_FFT_SIZE = 64; // next highest power of two.
 
-	static constexpr const int Xd = 0;	// X distance
-	static constexpr const int Xv = 1;	// X velocity
-	static constexpr const int Xa = 2;	// X acceleration
-	static constexpr const int Yd = 3;	// X distance
-	static constexpr const int Yv = 4;	// X velocity
-	static constexpr const int Ya = 5;	// X acceleration
-	static constexpr const int Zd = 6;	// Z distance
-	static constexpr const int Zv = 7;	// Z velocity
-	static constexpr const int Za = 8;	// Z acceleration
-	static constexpr const int Xp = 9;	// Pressure altitude
+    static constexpr const int Xd = 0;	// X distance
+    static constexpr const int Xv = 1;	// X velocity
+    static constexpr const int Xa = 2;	// X acceleration
+    static constexpr const int Yd = 3;	// X distance
+    static constexpr const int Yv = 4;	// X velocity
+    static constexpr const int Ya = 5;	// X acceleration
+    static constexpr const int Zd = 6;	// Z distance
+    static constexpr const int Zv = 7;	// Z velocity
+    static constexpr const int Za = 8;	// Z acceleration
+    static constexpr const int Xp = 9;	// Pressure altitude
 
-	typedef Eigen::Matrix<float, NSTATES, 1> StateVector;
-	typedef Eigen::Matrix<float, NSENSORS, 1> MeasurementVector;
-	typedef Eigen::Matrix<float, NSTATES, NSTATES> TransitionMatrix;
-	typedef Eigen::Matrix<float, NSENSORS, CALIBRATION_SAMPLES> MeasurementObservations;
-	typedef Eigen::Matrix<float, NSENSORS, NSENSORS> MeasurementCovarianceMatrix;
-	typedef Eigen::Matrix<float, NSENSORS, NSTATES> MeasurementMatrix;
-	typedef Eigen::Matrix<float, NSTATES, NSENSORS> GainMatrix;
+    typedef Eigen::Matrix<float, NSTATES, NSTATES> TransitionMatrix;
+    typedef Eigen::Matrix<float, NSENSORS, CALIBRATION_SAMPLES> MeasurementObservations;
 
+    RRCSKalmanFilter(std::function<bool()> abort);
+    virtual ~RRCSKalmanFilter();
+    virtual void Init();
+    virtual void Run();
 
-	RRCSKalmanFilter(std::function<bool()> abort);
-	virtual ~RRCSKalmanFilter();
-	virtual void Init();
-	virtual void Run();
+    std::function<bool(RRCSSensorMeasurement& measurement)> GetUpdateFunction() {
+        return [this](RRCSSensorMeasurement& d) -> bool {return measurements_.Enqueue(d);};
+    }
 
-	std::function<bool(RRCSSensorMeasurement& measurement)> GetUpdateFunction() {
-		return [this](RRCSSensorMeasurement& d) -> bool {return measurements_.Enqueue(d);};
-	}
-
-	void Join() {
-		if (thread_.joinable()) {
-			thread_.join();
-		}
-	}
+    void Join() {
+        if (thread_.joinable()) {
+            thread_.join();
+        }
+    }
 
 private:
 
-	void ProcessData(const RRCSSensorMeasurement& d);
-	void JitterStatistics(const RRCSSensorMeasurement& d);
-	void AccelerationVibrationAnalysis(const RRCSSensorMeasurement& d);bool AccelerationDoubleBuffer(
-			const RRCSSensorMeasurement& d, double A[], double B[]);
-	void AccelerationFFT(double A[]);
+    void ProcessData(const RRCSSensorMeasurement& d);
+    void JitterStatistics(const RRCSSensorMeasurement& d);
+    void AccelerationVibrationAnalysis(const RRCSSensorMeasurement& d);bool AccelerationDoubleBuffer(
+            const RRCSSensorMeasurement& d, double A[], double B[]);
+    void AccelerationFFT(double A[]);
 
-	void InitKalmanFilter();
-	void UpdateKalmanFilter(const RRCSSensorMeasurement& d);
-	void PrecalibrationState(const RRCSSensorMeasurement& data);
-	void KalmanGainState(const RRCSSensorMeasurement& data);
-	void EstimationStep();
-	void CorrectionStep(const RRCSSensorMeasurement& d);
-	void KalmanFilterStep(const RRCSSensorMeasurement& data);
-	void SetNextStateDeltaT(float deltaT);
-	void SetCalibrationValues();
-	void Log(const RRCSSensorMeasurement& d);
+    void InitKalmanFilter();
+    void UpdateKalmanFilter(const RRCSSensorMeasurement& d);
+    void KalmanGainState(const RRCSSensorMeasurement& data);
+    void EstimationStep();
+    void CorrectionStep(const RRCSSensorMeasurement& d);
+    void KalmanFilterStep(const RRCSSensorMeasurement& data);
+    void SetNextStateDeltaT(float deltaT);
+    void SetCalibrationValues();
+    void Log(const RRCSSensorMeasurement& d);
+    void SetRValues();
 
-	bool IsReady();
-	bool IsBoost();
-	bool IsCoast();
-	bool IsApogee();
-	bool DeployMain();
-	bool DualDeployDrogue();
-	bool DualDeployMain();
+    bool IsReady();
+    bool IsBoost();
+    bool IsCoast();
+    bool IsApogee();
+    bool DeployMain();
+    bool DualDeployDrogue();
+    bool DualDeployMain();
 
-	std::chrono::high_resolution_clock::time_point last_acc_;
-	uint32_t acc_observations_ { 0 };
-	std::chrono::high_resolution_clock::time_point last_baro_;
-	uint32_t baro_observations_ { 0 };
+    std::chrono::high_resolution_clock::time_point last_acc_;
+    uint32_t acc_observations_ { 0 };
+    std::chrono::high_resolution_clock::time_point last_baro_;
+    uint32_t baro_observations_ { 0 };
 
-	// Acceleration Vibration Analysis
-	double acc_A_[RRCS_ACCELERATION_SAMPLES];
-	double acc_B_[RRCS_ACCELERATION_SAMPLES];
-	bool is_acc_A_ { true };
-	int acc_count_ { 0 };
-	int ip_[ACC_FFT_SIZE * 2];
-	double w_[ACC_FFT_SIZE * 2]; //
-	double a_[ACC_FFT_SIZE * 2];
+    // Acceleration Vibration Analysis
+    double acc_A_[RRCS_ACCELERATION_SAMPLES];
+    double acc_B_[RRCS_ACCELERATION_SAMPLES];bool is_acc_A_ { true };
+    int acc_count_ { 0 };
+    int ip_[ACC_FFT_SIZE * 2];
+    double w_[ACC_FFT_SIZE * 2]; //
+    double a_[ACC_FFT_SIZE * 2];
 
-	// Pressure Altitude
-	float Xp_max_ {0.0};
-	float Xp_min_ {0.0};
-	float Xp_max_observations_ {0};
+    // Pressure Altitude
+    float Xp_max_ { 0.0 };
+    float Xp_min_ { 0.0 };
+    float Xp_max_observations_ { 0 };
 
-	// Kalman State Vector
-	StateVector Xe_;    // X*n+1,n (estimate)
-	StateVector Xf_;    // X*n,n
+    int Nobs_ { 0 };
 
-	// Kalman Transition Matrix
-	TransitionMatrix A_;
-	// Estimation variance
-	StateVector U_;
-	// Kalman Measurement Vector
-	MeasurementVector Y_;
-	MeasurementCovarianceMatrix R_;
-	MeasurementVector Yavg_;
-	MeasurementObservations Yobs_;
-	int Ysamples_ { 0 };
+    typedef Eigen::Matrix<float, NSENSORS, 1> MeasurementVector;
+    typedef Eigen::Matrix<float, NSENSORS, NSTATES> MeasurementMatrix;
+    typedef Eigen::Matrix<float, NSENSORS, NSENSORS> MeasurementCovarianceMatrix;
+    typedef Eigen::Matrix<float, NSTATES, 1> StateVector;
+    typedef Eigen::Matrix<float, NSTATES, NSENSORS> GainMatrix;
+    typedef Eigen::Matrix<float, NSTATES, NSTATES> StateMatrix;
 
-	// Kalman Measurement Mapping Matrix
-	MeasurementMatrix M_;   // all
-	int Nobs_ { 0 };
+    // Measurement Covariance
+    MeasurementCovarianceMatrix R_;
 
-	// Kalman Gain Matrix 
-	GainMatrix H_;
-	GainMatrix Hp_;
-	GainMatrix Hxyz_;
+    // Estimation variance
+    StateVector U_;
 
-	GainMatrix Pe_; // Pk+1,k (estimate)
-	GainMatrix Pf_; // Pk,k 
+    // Kalman Measurement Vector
+    MeasurementVector Y_;
 
-	// Delta T
-	std::chrono::high_resolution_clock::time_point last_;
+    // Kalman State Vector
+    StateVector Xe_;    // X*n+1,n (estimate)
+    StateVector Xf_;    // X*n,n
 
+    // Kalman Transition Matrix
+    StateMatrix A_;
 
-	ThreadedQueue<RRCSSensorMeasurement> measurements_;
-	std::function<bool()> abort_;
-	std::thread thread_;
-	std::fstream logfile_;
+    // Kalman Measurement Mapping Matrix
+    MeasurementMatrix M_;   // all
+
+    // Kalman Gain Matrix
+    GainMatrix He_; // H*n
+    GainMatrix Hf_; // H*n-1
+    GainMatrix Hp_;
+    GainMatrix Hxyz_;
+
+    StateMatrix Se_; // S*k+1,k (estimate)
+    StateMatrix Sf_; // S*k,k
+    StateMatrix Q_;  //
+
+    // Delta T
+    std::chrono::high_resolution_clock::time_point last_;
+
+    ThreadedQueue<RRCSSensorMeasurement> measurements_;
+    std::function<bool()> abort_;
+    std::thread thread_;
+    std::fstream logfile_;
 
 };
 

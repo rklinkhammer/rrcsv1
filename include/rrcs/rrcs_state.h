@@ -70,7 +70,7 @@ public:
 	void Reset();
 
 	void AddCallback(std::function<void()> f) {
-		std::unique_lock<std::mutex> lock(lock_);
+		std::unique_lock < std::mutex > lock(lock_);
 		callbacks_.push_back(f);
 	}
 
@@ -91,7 +91,7 @@ public:
 	}
 
 	void SetMeasurementVector(const std::vector<double>& measurement_vector) {
-		std::unique_lock<std::mutex> lock(lock_);
+		std::unique_lock < std::mutex > lock(lock_);
 		measurement_vector_ = measurement_vector;
 	}
 
@@ -100,7 +100,7 @@ public:
 	}
 
 	void SetStateVector(const std::vector<double>& state_vector) {
-		std::unique_lock<std::mutex> lock(lock_);
+		std::unique_lock < std::mutex > lock(lock_);
 		state_vector_ = state_vector;
 	}
 
@@ -131,81 +131,77 @@ public:
 	}
 
 	void Notify() {
-		std::unique_lock<std::mutex> lock(lock_);
+		std::unique_lock < std::mutex > lock(lock_);
 		for (auto f : callbacks_) {
 			f();
 		}
 	}
 
+	const std::vector<double> GetXYZPCovariance() {
+		std::vector<double> v { boost::accumulators::variance(Xcal_),
+				boost::accumulators::variance(Ycal_),
+				boost::accumulators::variance(Zcal_),
+				boost::accumulators::variance(Pcal_) };
+		return v;
+	}
+
 	const std::vector<double> GetXCal() {
-		std::vector<double> v {
-				boost::accumulators::mean(Xcal_),
-				sqrt(boost::accumulators::variance(Xcal_)),
-				static_cast<double>(boost::accumulators::count(Xcal_))
-		};
+		std::vector<double> v { boost::accumulators::mean(Xcal_), sqrt(
+				boost::accumulators::variance(Xcal_)),
+				static_cast<double>(boost::accumulators::count(Xcal_)) };
 		return v;
 	}
 
 	const std::vector<double> GetYCal() {
-		std::vector<double> v {
-				boost::accumulators::mean(Ycal_),
-				sqrt(boost::accumulators::variance(Ycal_)),
-				static_cast<double>(boost::accumulators::count(Ycal_))
-		};
+		std::vector<double> v { boost::accumulators::mean(Ycal_), sqrt(
+				boost::accumulators::variance(Ycal_)),
+				static_cast<double>(boost::accumulators::count(Ycal_)) };
 		return v;
 	}
 
 	const std::vector<double> GetZCal() {
-		std::vector<double> v {
-				boost::accumulators::mean(Zcal_),
-				sqrt(boost::accumulators::variance(Zcal_)),
-				static_cast<double>(boost::accumulators::count(Zcal_))
-		};
+		std::vector<double> v { boost::accumulators::mean(Zcal_), sqrt(
+				boost::accumulators::variance(Zcal_)),
+				static_cast<double>(boost::accumulators::count(Zcal_)) };
 		return v;
 	}
 
 	const std::vector<double> GetPCal() {
-		std::vector<double> v {
-				boost::accumulators::mean(Pcal_),
-				sqrt(boost::accumulators::variance(Pcal_)),
-				static_cast<double>(boost::accumulators::count(Pcal_))
-		};
+		std::vector<double> v { boost::accumulators::mean(Pcal_), sqrt(
+				boost::accumulators::variance(Pcal_)),
+				static_cast<double>(boost::accumulators::count(Pcal_)) };
 		return v;
 	}
 
 	const std::vector<double> GetXJitter() {
-		std::vector<double> v {
-				boost::accumulators::mean(Xjitter_) / 1000000000.0,
-				sqrt(boost::accumulators::variance(Xjitter_)) / 1000000000.0,
-				static_cast<double>(boost::accumulators::count(Xjitter_))
-		};
+		std::vector<double> v { boost::accumulators::mean(Xjitter_)
+				/ 1000000000.0, sqrt(boost::accumulators::variance(Xjitter_))
+				/ 1000000000.0, static_cast<double>(boost::accumulators::count(
+				Xjitter_)) };
 		return v;
 	}
 
 	const std::vector<double> GetPJitter() {
-		std::vector<double> v {
-				boost::accumulators::mean(Pjitter_) / 1000000000.0,
-				sqrt(boost::accumulators::variance(Pjitter_)) / 1000000000.0,
-				static_cast<double>(boost::accumulators::count(Pjitter_))
-		};
+		std::vector<double> v { boost::accumulators::mean(Pjitter_)
+				/ 1000000000.0, sqrt(boost::accumulators::variance(Pjitter_))
+				/ 1000000000.0, static_cast<double>(boost::accumulators::count(
+				Pjitter_)) };
 		return v;
 	}
 
 	const std::vector<double> GetXLatency() {
-		std::vector<double> v {
-				boost::accumulators::mean(Xlatency_) / 1000000000.0,
-				sqrt(boost::accumulators::variance(Xlatency_)) / 1000000000.0,
-				static_cast<double>(boost::accumulators::count(Xlatency_))
-		};
+		std::vector<double> v { boost::accumulators::mean(Xlatency_)
+				/ 1000000000.0, sqrt(boost::accumulators::variance(Xlatency_))
+				/ 1000000000.0, static_cast<double>(boost::accumulators::count(
+				Xlatency_)) };
 		return v;
 	}
 
 	const std::vector<double> GetPLatency() {
-		std::vector<double> v {
-				boost::accumulators::mean(Platency_) / 1000000000.0,
-				sqrt(boost::accumulators::variance(Platency_)) / 1000000000.0,
-				static_cast<double>(boost::accumulators::count(Platency_))
-		};
+		std::vector<double> v { boost::accumulators::mean(Platency_)
+				/ 1000000000.0, sqrt(boost::accumulators::variance(Platency_))
+				/ 1000000000.0, static_cast<double>(boost::accumulators::count(
+				Platency_)) };
 		return v;
 	}
 

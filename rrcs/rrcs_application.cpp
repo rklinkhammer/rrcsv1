@@ -47,7 +47,7 @@ Wt::WApplication *RRCSApplication::createApplication(
 void RRCSApplication::UpdateThread(Wt::WApplication *app, std::function<bool()> abort) {
     std::chrono::high_resolution_clock::time_point time;
     time = std::chrono::high_resolution_clock::now();
-    time += std::chrono::milliseconds(10000);
+    time += std::chrono::milliseconds(5000);
     std::chrono::milliseconds rate {1000};
     while(!abort()) {
         std::this_thread::sleep_until(time);
