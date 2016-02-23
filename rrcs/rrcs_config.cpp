@@ -60,7 +60,7 @@ void RRCSConfig::UpdateOperationalMode(std::string mode, std::string altitude) {
 void RRCSConfig::ReadConfig(std::string& mode, std::string& altitude) {
     std::unique_lock<std::mutex> lock(lock_);
     boost::property_tree::ptree pt;
-    boost::property_tree::ini_parser::read_ini("config.ini", pt);
+    boost::property_tree::ini_parser::read_ini("/home/rrcs/config.ini", pt);
     mode = pt.get("operational.mode", RRCS_MODE_MAIN_STR);
     altitude = pt.get("operational.parameters", RRCS_MAIN_DEPLOY_300_STR);
 	UpdateOperationalMode(mode, altitude);
@@ -70,21 +70,21 @@ void RRCSConfig::WriteConfig(const std::string mode,
         const std::string altitude) {
     std::unique_lock<std::mutex> lock(lock_);
     boost::property_tree::ptree pt;
-    boost::property_tree::ini_parser::read_ini("config.ini", pt);
+    boost::property_tree::ini_parser::read_ini("/home/rrcs/config.ini", pt);
     pt.put("operational.mode", mode);
     pt.put("operational.parameters", altitude);
-    boost::property_tree::ini_parser::write_ini("config.ini", pt);
+    boost::property_tree::ini_parser::write_ini("/home/rrcs/config.ini", pt);
     UpdateOperationalMode(mode, altitude);
 }
 
 std::string RRCSConfig::GetNextFileName() {
     std::unique_lock<std::mutex> lock(lock_);
     boost::property_tree::ptree pt;
-    boost::property_tree::ini_parser::read_ini("config.ini", pt);
+    boost::property_tree::ini_parser::read_ini("/home/rrcs/config.ini", pt);
     int index = pt.get("logging.index", 0);
     pt.put("logging.index", index+1);
     std::string prefix = pt.get("logging.prefix", "rrcs_");
-    boost::property_tree::ini_parser::write_ini("config.ini", pt);
+    boost::property_tree::ini_parser::write_ini("/home/rrcs/config.ini", pt);
 
     filename_ = prefix + std::to_string(index) + ".csv";
     return filename_;

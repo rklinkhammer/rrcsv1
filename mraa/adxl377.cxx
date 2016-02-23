@@ -63,14 +63,14 @@ void ADXL377::acceleration(float *xAccel, float *yAccel, float *zAccel) {
 	float xVolts, yVolts, zVolts;
 
 	values(&xVolts, &yVolts, &zVolts);
-	*xAccel = ((xVolts - m_zeroX) / m_vpg) * -9.81;
+	*xAccel = ((xVolts - m_zeroX) / m_vpg) * 9.81;
 	*yAccel = ((yVolts - m_zeroY) / m_vpg) * 9.81;
 	*zAccel = ((zVolts - m_zeroZ) / m_vpg) * 9.81;
 }
 
 void ADXL377::accelerationX(float *xAccel) {
 	*xAccel = m_adc->getSample(upm::ADS1X15::SINGLE_1);
-	*xAccel = ((*xAccel - m_zeroX) / m_vpg) * -9.81;
+	*xAccel = ((*xAccel - m_zeroX) / m_vpg) * 9.81;
 }
 
 void ADXL377::accelerationY(float *yAccel) {

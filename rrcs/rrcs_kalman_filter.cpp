@@ -157,11 +157,10 @@ void RRCSKalmanFilter::InitKalmanFilter() {
     // of the motion.  For this, we guestimate the max covariance of the motion
     // in the next time interval.
     Q_ = StateMatrix::Zero();
-    Q_(Xa,Xa) = (50.0*50.0);
-    Q_(Ya,Ya) = (10.0*10.0);
-    Q_(Za,Za) = (10.0*10.0);
-    Q_(Xp,Xp) = (10.0*10.0);
-
+    Q_(Xa, Xa) = (50.0 * 50.0);
+    Q_(Ya, Ya) = (10.0 * 10.0);
+    Q_(Za, Za) = (10.0 * 10.0);
+    Q_(Xp, Xp) = (10.0 * 10.0);
 
 }
 
@@ -241,6 +240,12 @@ void RRCSKalmanFilter::SetCalibrationValues() {
     Xf_(Xp) = p[0];
 }
 
+void RRCSKalmanFilter::SetNextState(RRCSState::RRCS_STATE state) {
+    RRCSState::GetInstance().SetState(state);
+    state_count_ = 0;
+    std::cout << RRCSState::GetInstance().GetRrcsStateStr() << std::endl;
+}
+
 void RRCSKalmanFilter::UpdateKalmanFilter(const RRCSSensorMeasurement& d) {
     // collect statistics for covariances.
     if (d.IsPressure()) {
@@ -255,8 +260,7 @@ void RRCSKalmanFilter::UpdateKalmanFilter(const RRCSSensorMeasurement& d) {
     switch (RRCSState::GetInstance().GetState()) {
     case RRCSState::RRCS_STATE_INIT:
         if (RRCSState::GetInstance().IsCalibrated()) {
-            RRCSState::GetInstance().SetState(RRCSState::RRCS_STATE_CALIBRATED);
-            std::cout << RRCSState::GetInstance().GetRrcsStateStr() << std::endl;
+            SetNextState(RRCSState::RRCS_STATE_CALIBRATED);
             SetCalibrationValues();
         }
         break;
@@ -264,8 +268,7 @@ void RRCSKalmanFilter::UpdateKalmanFilter(const RRCSSensorMeasurement& d) {
     case RRCSState::RRCS_STATE_CALIBRATED:
         KalmanGainState(d);
         if (IsReady()) {
-            RRCSState::GetInstance().SetState(RRCSState::RRCS_STATE_READY);
-            std::cout << RRCSState::GetInstance().GetRrcsStateStr() << std::endl;
+            SetNextState(RRCSState::RRCS_STATE_READY);
         }
         break;
 
@@ -273,8 +276,7 @@ void RRCSKalmanFilter::UpdateKalmanFilter(const RRCSSensorMeasurement& d) {
         KalmanFilterStep(d);
         Log(d);
         if (IsBoost()) {
-            RRCSState::GetInstance().SetState(RRCSState::RRCS_STATE_BOOST);
-            std::cout << RRCSState::GetInstance().GetRrcsStateStr() << std::endl;
+            SetNextState(RRCSState::RRCS_STATE_BOOST);
         }
         break;
 
@@ -282,8 +284,7 @@ void RRCSKalmanFilter::UpdateKalmanFilter(const RRCSSensorMeasurement& d) {
         KalmanFilterStep(d);
         Log(d);
         if (IsCoast()) {
-            RRCSState::GetInstance().SetState(RRCSState::RRCS_STATE_COAST);
-            std::cout << RRCSState::GetInstance().GetRrcsStateStr() << std::endl;
+            SetNextState(RRCSState::RRCS_STATE_COAST);
         }
         break;
 
@@ -291,8 +292,7 @@ void RRCSKalmanFilter::UpdateKalmanFilter(const RRCSSensorMeasurement& d) {
         KalmanFilterStep(d);
         Log(d);
         if (IsApogee()) {
-            RRCSState::GetInstance().SetState(RRCSState::RRCS_STATE_APOGEE);
-            std::cout << RRCSState::GetInstance().GetRrcsStateStr() << std::endl;
+            SetNextState(RRCSState::RRCS_STATE_APOGEE);
         }
         break;
 
@@ -300,11 +300,9 @@ void RRCSKalmanFilter::UpdateKalmanFilter(const RRCSSensorMeasurement& d) {
         KalmanFilterStep(d);
         Log(d);
         if (DualDeployDrogue()) {
-            RRCSState::GetInstance().SetState(RRCSState::RRCS_STATE_DROGUE);
-            std::cout << RRCSState::GetInstance().GetRrcsStateStr() << std::endl;
+            SetNextState(RRCSState::RRCS_STATE_DROGUE);
         } else if (DeployMain()) {
-            RRCSState::GetInstance().SetState(RRCSState::RRCS_STATE_DONE);
-            std::cout << RRCSState::GetInstance().GetRrcsStateStr() << std::endl;
+            SetNextState(RRCSState::RRCS_STATE_DONE);
         }
         break;
 
@@ -312,14 +310,18 @@ void RRCSKalmanFilter::UpdateKalmanFilter(const RRCSSensorMeasurement& d) {
         KalmanFilterStep(d);
         Log(d);
         if (DualDeployMain()) {
-            RRCSState::GetInstance().SetState(RRCSState::RRCS_STATE_DONE);
-            std::cout << RRCSState::GetInstance().GetRrcsStateStr() << std::endl;
-        }
+            SetNextState(RRCSState::RRCS_STATE_DONE);
+       }
         break;
 
     case RRCSState::RRCS_STATE_DONE:
         KalmanFilterStep(d);
         logfile_.close();
+        SetNextState(RRCSState::RRCS_STATE_CLEANUP);
+        std::cout << He_ << std::endl;
+        break;
+
+    case RRCSState::RRCS_STATE_CLEANUP:
         break;
     }
 }
@@ -342,7 +344,9 @@ bool RRCSKalmanFilter::IsBoost() {
 
 bool RRCSKalmanFilter::IsCoast() {
     // we are coasting if the X acceleration goes negative.
-    return (Xf_(Xa) < 0.0);
+    // we need at least some number of consistent measurements to avoid
+    // transients.
+    return ((Xf_(Xa) < 0.0) && (state_count_++ > RRCS_ACCELERATION_SAMPLES/2) );
 }
 
 bool RRCSKalmanFilter::IsApogee() {
@@ -361,7 +365,10 @@ bool RRCSKalmanFilter::IsApogee() {
     if (fabs(Xf_(Xv)) < VELOCITY_APOGEE_VALUE) {
         return true;
     }
-    if ((Xf_(Xp) < Xp_min_) && (++Xp_max_observations_ == RRCS_DESCENT_OBSERVATIONS)) {
+    if ((Xf_(Xp) < (Xp_min_ + 15.0))) {
+        return false;
+    }
+    if ((Xf_(Xp) < Xp_max_) && (++Xp_max_observations_ == RRCS_DESCENT_OBSERVATIONS)) {
         return true;
     }
 }

@@ -105,6 +105,7 @@ private:
     bool DeployMain();
     bool DualDeployDrogue();
     bool DualDeployMain();
+    void SetNextState(RRCSState::RRCS_STATE state);
 
     std::chrono::high_resolution_clock::time_point last_acc_;
     uint32_t acc_observations_ { 0 };
@@ -164,6 +165,9 @@ private:
 
     // Delta T
     std::chrono::high_resolution_clock::time_point last_;
+
+    // counters
+    uint32_t state_count_ {0};
 
     ThreadedQueue<RRCSSensorMeasurement> measurements_;
     std::function<bool()> abort_;

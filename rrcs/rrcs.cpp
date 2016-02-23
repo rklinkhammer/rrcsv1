@@ -24,6 +24,8 @@ SOFTWARE.
 */
 
 #include <iostream>
+#include <mraa/types.hpp>
+#include <mraa/pwm.hpp>
 #include "rrcs/rrcs_application.h"
 #include "rrcs/rrcs_config.h"
 #include "rrcs/rrcs_accelerometer.h"
@@ -66,5 +68,4 @@ int main(int argc, char **argv) {
     } catch (std::exception &e) {
         std::cerr << "exception: " << e.what() << std::endl;
     }
-
 }
