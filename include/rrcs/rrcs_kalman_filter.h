@@ -46,7 +46,8 @@ public:
     static constexpr const int NSTATES = 10;
     static constexpr const int NSENSORS = 4;
     static constexpr const int CALIBRATION_SAMPLES = 250;
-    static constexpr const float ACCX_LAUNCH_VALUE = (9.81 * 0);	// 2g
+    static constexpr const float ACCX_LAUNCH_VALUE = (9.81 * 1);	// 1g
+    static constexpr const float ACCX_ADC_ERROR = 0.2424;
     static constexpr const float VELOCITY_APOGEE_VALUE = 2.0;		// 2 m/s
     static constexpr const int ACC_FFT_SIZE = 64; // next highest power of two.
 
@@ -106,6 +107,7 @@ private:
     bool DualDeployDrogue();
     bool DualDeployMain();
     void SetNextState(RRCSState::RRCS_STATE state);
+    bool IsZeroXa();
 
     std::chrono::high_resolution_clock::time_point last_acc_;
     uint32_t acc_observations_ { 0 };
@@ -173,7 +175,7 @@ private:
     std::function<bool()> abort_;
     std::thread thread_;
     std::fstream logfile_;
-
+    float elapsed_time_;
 };
 
 } /* namespace rrcs */

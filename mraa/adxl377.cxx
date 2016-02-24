@@ -100,7 +100,7 @@ void ADXL377::calibrate() {
 	}
 	std::cout << "ADXL377 x = " << x << " y = " << y << " z " << z << std::endl;
 
-	setZeroX(x - m_vpg);
+	setZeroX(x);
 	setZeroY(y);
 	setZeroZ(z);  // Adjust for orientation with Z up.
 

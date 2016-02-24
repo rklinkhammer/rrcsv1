@@ -49,6 +49,10 @@ RRCSKalmanFilter::~RRCSKalmanFilter() {
 void RRCSKalmanFilter::Init() {
     InitKalmanFilter();
     logfile_.open(RRCSConfig::GetInstance().GetFilename(), std::fstream::out | std::fstream::trunc);
+    logfile_
+            << "elapsed,time,state,Xa,Ya,Za,Xp,X*a,X*v,X*d,Y*a,Y*v,Y*d,Z*a,Z*v,Z*d,X*p,min(Xp),max(Xp),N(Xp)"
+            << std::endl;
+    elapsed_time_ = 0.0;
 }
 
 void RRCSKalmanFilter::Run() {
@@ -268,14 +272,15 @@ void RRCSKalmanFilter::UpdateKalmanFilter(const RRCSSensorMeasurement& d) {
     case RRCSState::RRCS_STATE_CALIBRATED:
         KalmanGainState(d);
         if (IsReady()) {
+            Log(d);
             SetNextState(RRCSState::RRCS_STATE_READY);
         }
         break;
 
     case RRCSState::RRCS_STATE_READY:
         KalmanFilterStep(d);
-        Log(d);
         if (IsBoost()) {
+            Log(d);
             SetNextState(RRCSState::RRCS_STATE_BOOST);
         }
         break;
@@ -311,7 +316,7 @@ void RRCSKalmanFilter::UpdateKalmanFilter(const RRCSSensorMeasurement& d) {
         Log(d);
         if (DualDeployMain()) {
             SetNextState(RRCSState::RRCS_STATE_DONE);
-       }
+        }
         break;
 
     case RRCSState::RRCS_STATE_DONE:
@@ -342,11 +347,19 @@ bool RRCSKalmanFilter::IsBoost() {
     return (Xf_(Xa) > ACCX_LAUNCH_VALUE);
 }
 
+bool RRCSKalmanFilter::IsZeroXa() {
+    // we are coasting if the X acceleration goes negative.
+    // we need at least some number of consistent measurements to avoid
+    // transients.
+    return ((Xf_(Xa) > -(ACCX_ADC_ERROR * 2)) && (Xf_(Xa) < (ACCX_ADC_ERROR * 2)));
+}
+
 bool RRCSKalmanFilter::IsCoast() {
     // we are coasting if the X acceleration goes negative.
     // we need at least some number of consistent measurements to avoid
     // transients.
-    return ((Xf_(Xa) < 0.0) && (state_count_++ > RRCS_ACCELERATION_SAMPLES/2) );
+
+    return (IsZeroXa() && (state_count_++ > RRCS_ACCELERATION_SAMPLES / 2));
 }
 
 bool RRCSKalmanFilter::IsApogee() {
@@ -359,9 +372,6 @@ bool RRCSKalmanFilter::IsApogee() {
     // 3) The Barometric pressure starts to increase.  For this, we need
     //    to monitor a sequence of values.
 
-    if (Xf_(Xa) > 0.0) {
-        return true;
-    }
     if (fabs(Xf_(Xv)) < VELOCITY_APOGEE_VALUE) {
         return true;
     }
@@ -403,7 +413,10 @@ void RRCSKalmanFilter::ProcessData(const RRCSSensorMeasurement& d) {
 }
 
 void RRCSKalmanFilter::Log(const RRCSSensorMeasurement& d) {
-    logfile_ << d.GetTimestamp().time_since_epoch().count() << ","
+    float dT = (float) std::chrono::duration_cast < std::chrono::microseconds
+            > (d.GetTimestamp() - last_).count() / 1000000.0;
+    elapsed_time_ += dT;
+    logfile_ << elapsed_time_ << "," << d.GetTimestamp().time_since_epoch().count() << ","
             << RRCSState::GetInstance().GetRrcsStateStr() << ",";
     for (int i = 0; i < NSENSORS; i++) {
         logfile_ << Y_(i) << ",";

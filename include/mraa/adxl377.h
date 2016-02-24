@@ -33,7 +33,11 @@
 
 #define ADXL377_DEFAULT_AREF 3.3
 #define ADXL377_VOLTS_PER_G	ADXL377_DEFAULT_AREF/400
-#define ADXL377_SENSITIVITY (400.0/3.3) //
+#define ADXL377_SENSITIVITY (400.0/3.3) // g/v
+#define ADXL377_VOLTS_PER_BIT (0.002)   // v/bit
+//
+// g/v * v/bit = g/bit
+#define ADXL377_G_PER_BIT   ADXL377_SENSITIVITY * ADXL377_VOLTS_PER_BIT;
 
 namespace upm {
 
