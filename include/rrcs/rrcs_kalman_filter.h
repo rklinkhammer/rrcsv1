@@ -101,22 +101,23 @@ private:
 
     bool IsReady();
     bool IsBoost();
-    bool IsCoast();
     bool IsApogee();
     bool DeployMain();
     bool DualDeployDrogue();
     bool DualDeployMain();
     void SetNextState(RRCSState::RRCS_STATE state);
-    bool IsZeroXa();
+    bool AccelerationSamples();
 
     std::chrono::high_resolution_clock::time_point last_acc_;
     uint32_t acc_observations_ { 0 };
     std::chrono::high_resolution_clock::time_point last_baro_;
     uint32_t baro_observations_ { 0 };
 
+
     // Acceleration Vibration Analysis
     double acc_A_[RRCS_ACCELERATION_SAMPLES];
-    double acc_B_[RRCS_ACCELERATION_SAMPLES];bool is_acc_A_ { true };
+    double acc_B_[RRCS_ACCELERATION_SAMPLES];
+    bool is_acc_A_ { true };
     int acc_count_ { 0 };
     int ip_[ACC_FFT_SIZE * 2];
     double w_[ACC_FFT_SIZE * 2]; //
@@ -176,6 +177,7 @@ private:
     std::thread thread_;
     std::fstream logfile_;
     float elapsed_time_;
+    float timeout_;
 };
 
 } /* namespace rrcs */

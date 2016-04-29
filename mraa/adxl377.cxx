@@ -86,7 +86,7 @@ void ADXL377::accelerationZ(float *zAccel) {
 void ADXL377::calibrate() {
 	// make sure the sensor is still before running calibration.
 
-//	float xSum = 0.0, ySum = 0.0, zSum = 0.0;
+	float xSum = 0.0, ySum = 0.0, zSum = 0.0;
 	float x, y, z;
 
 	std::chrono::high_resolution_clock::time_point time =
@@ -97,7 +97,13 @@ void ADXL377::calibrate() {
 	// Read a bunch of values and take the last one
 	for (int i = 0; i < 1000; i++) {
 		values(&x, &y, &z);
+		xSum += x;
+		ySum += y;
+		zSum += z;
 	}
+	x = xSum/1000.0;
+	y = ySum/1000.0;
+	z = zSum/1000.0;
 	std::cout << "ADXL377 x = " << x << " y = " << y << " z " << z << std::endl;
 
 	setZeroX(x);

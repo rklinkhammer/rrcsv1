@@ -69,7 +69,7 @@ void RRCSAccelerometer::ReadSensor(RRCSSensorMeasurement& measurement,
         std::chrono::high_resolution_clock::time_point time) {
     float accX, accY, accZ;
     acc_->acceleration(&accX, &accY, &accZ);
-    measurement.SetAccXYZ(time, accX, accY, accZ);
+    measurement.SetAccXYZ(time, -accX, accY, accZ);
 }
 
 } /* namespace rrcs */

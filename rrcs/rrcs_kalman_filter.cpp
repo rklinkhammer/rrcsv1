@@ -288,14 +288,6 @@ void RRCSKalmanFilter::UpdateKalmanFilter(const RRCSSensorMeasurement& d) {
     case RRCSState::RRCS_STATE_BOOST:
         KalmanFilterStep(d);
         Log(d);
-        if (IsCoast()) {
-            SetNextState(RRCSState::RRCS_STATE_COAST);
-        }
-        break;
-
-    case RRCSState::RRCS_STATE_COAST:
-        KalmanFilterStep(d);
-        Log(d);
         if (IsApogee()) {
             SetNextState(RRCSState::RRCS_STATE_APOGEE);
         }
@@ -347,40 +339,24 @@ bool RRCSKalmanFilter::IsBoost() {
     return (Xf_(Xa) > ACCX_LAUNCH_VALUE);
 }
 
-bool RRCSKalmanFilter::IsZeroXa() {
-    // we are coasting if the X acceleration goes negative.
-    // we need at least some number of consistent measurements to avoid
-    // transients.
-    return ((Xf_(Xa) > -(ACCX_ADC_ERROR * 2)) && (Xf_(Xa) < (ACCX_ADC_ERROR * 2)));
-}
-
-bool RRCSKalmanFilter::IsCoast() {
-    // we are coasting if the X acceleration goes negative.
-    // we need at least some number of consistent measurements to avoid
-    // transients.
-
-    return (IsZeroXa() && (state_count_++ > RRCS_ACCELERATION_SAMPLES / 2));
+bool RRCSKalmanFilter::AccelerationSamples() {
+    return (state_count_++ > RRCS_ACCELERATION_SAMPLES / 2);
 }
 
 bool RRCSKalmanFilter::IsApogee() {
     // we are at apogee at one of the following conditions:
-    // 1) the acceleration becomes positive, indicating that we
-    //    have arced over.
-    // 2) The velocity becomes close to zero (but, this is not a guarantee
-    //    since we could have ballistic trajectory where this is not
-    //    true
-    // 3) The Barometric pressure starts to increase.  For this, we need
+    // 1) The Barometric pressure starts to increase.  For this, we need
     //    to monitor a sequence of values.
 
-    if (fabs(Xf_(Xv)) < VELOCITY_APOGEE_VALUE) {
-        return true;
-    }
     if ((Xf_(Xp) < (Xp_min_ + 15.0))) {
         return false;
     }
+
     if ((Xf_(Xp) < Xp_max_) && (++Xp_max_observations_ == RRCS_DESCENT_OBSERVATIONS)) {
         return true;
     }
+
+    return false;
 }
 
 bool RRCSKalmanFilter::DeployMain() {
